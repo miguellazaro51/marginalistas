@@ -1,0 +1,2710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="sticker">
+  <title>Duelo Marginal — Juego Multijugador de Doctrinas Económicas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* 1. Sticker style tokens */
+      --background: #fef7ff;
+      --surface-container-low: #ffffff;
+      --surface-container: #f8eef8;
+      --surface-container-high: #f2e8f2;
+
+      --on-surface: #2e1a28;
+      --on-surface-variant: #604868;
+
+      --outline: #907898;
+      --outline-variant: #dcc8e0;
+
+      --primary: #c2207f;
+      --on-primary: #ffffff;
+      --primary-container: #f080c0;
+      --on-primary-container: #2e1a28;
+      --secondary: #7c52aa;
+      --on-secondary: #ffffff;
+      --tertiary: #0096cc;
+      --on-tertiary: #2e1a28;
+      --error: #c53030;
+      --on-error: #ffffff;
+
+      --data-1: #c2207f;
+      --data-2: #7c52aa;
+      --data-3: #0096cc;
+      --data-4: #d96a00;
+      --data-context: #c8b8d0;
+
+      --font-headline: 'DM Sans', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-label: 'DM Sans', sans-serif;
+
+      --rounded: 1rem;
+      --rounded-lg: 2rem;
+      --rounded-full: 9999px;
+
+      --shadow-pink: 0 4px 16px rgb(224 64 160 / 0.2);
+      --shadow-pink-deep: 0 10px 28px rgb(224 64 160 / 0.32);
+      --shadow-grape: 0 4px 16px rgb(124 82 170 / 0.2);
+      --shadow-grape-deep: 0 10px 28px rgb(124 82 170 / 0.32);
+      --shadow-sky: 0 4px 16px rgb(0 150 204 / 0.2);
+      --shadow-sky-deep: 0 10px 28px rgb(0 150 204 / 0.32);
+      --shadow-tangerine: 0 4px 16px rgb(217 106 0 / 0.2);
+      --shadow-tangerine-deep: 0 10px 28px rgb(217 106 0 / 0.32);
+
+      --pop-scale: scale(1.03);
+      --lift: translateY(-4px);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      /* 2. Player surface & badge tokens */
+      --p1-soft: #fde8f4;
+      --p2-soft: #e0f5fc;
+      --p3-soft: #f1eaf8;
+      --p4-soft: #fff0e0;
+      --p4-accent: #d96a00;
+
+      /* 3. Shared semantic, type, spacing, motion tokens */
+      --positive: #15803d;
+      --positive-soft: #dcfce7;
+      --on-positive: #ffffff;
+      --warning: #b45309;
+      --warning-soft: #fef3c7;
+      --error-soft: #fee2e2;
+      --focus: #c2207f;
+
+      --display-size: clamp(1.85rem, 1.4rem + 1.5vw, 2.5rem);
+      --headline-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.625rem);
+      --subhead-size: clamp(1.05rem, 0.98rem + 0.25vw, 1.2rem);
+      --body-size: clamp(0.95rem, 0.92rem + 0.15vw, 1.05rem);
+      --label-size: 0.75rem;
+
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-grid {
+      display: grid;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1180px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Top Header */
+    .site-header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: var(--space-lg) var(--space-lg) 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--on-surface-variant);
+    }
+
+    .display-title {
+      font-family: var(--font-headline);
+      font-weight: 900;
+      font-size: var(--display-size);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    .display-title em {
+      font-style: normal;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--on-surface-variant);
+      max-width: 65ch;
+      font-size: var(--body-size);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    /* Sticker Pill Buttons & Badges */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      border: none;
+      border-radius: var(--rounded-full);
+      padding: var(--space-sm) var(--space-lg);
+      min-height: 44px;
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--body-size);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform var(--dur-short) var(--ease-bounce),
+                  box-shadow var(--dur-short) var(--ease-out),
+                  background-color var(--dur-short) var(--ease-out);
+      user-select: none;
+    }
+
+    .btn:hover:not(:disabled) { transform: var(--pop-scale); }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: var(--on-primary);
+      box-shadow: var(--shadow-pink);
+    }
+    .btn-primary:hover:not(:disabled) { box-shadow: var(--shadow-pink-deep); }
+
+    .btn-secondary {
+      background-color: var(--secondary);
+      color: var(--on-secondary);
+      box-shadow: var(--shadow-grape);
+    }
+    .btn-secondary:hover:not(:disabled) { box-shadow: var(--shadow-grape-deep); }
+
+    .btn-surface {
+      background-color: var(--surface-container-low);
+      color: var(--on-surface);
+      box-shadow: var(--shadow-grape);
+    }
+    .btn-surface:hover:not(:disabled) {
+      background-color: var(--surface-container);
+      box-shadow: var(--shadow-grape-deep);
+    }
+
+    .btn-quiet {
+      background-color: transparent;
+      color: var(--primary);
+      padding: var(--space-sm) var(--space-md);
+    }
+    .btn-quiet:hover:not(:disabled) { background-color: var(--surface-container); }
+
+    .btn-lg {
+      padding: var(--space-md) var(--space-xl);
+      min-height: 52px;
+      font-size: var(--subhead-size);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      border-radius: var(--rounded-full);
+      padding: var(--space-xs) var(--space-md);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      border-radius: var(--rounded-full);
+      padding: var(--space-xs) var(--space-md);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border: 2px solid var(--secondary);
+      color: var(--secondary);
+      background-color: var(--surface-container-low);
+    }
+
+    .tag-sky {
+      border-color: var(--tertiary);
+      background-color: var(--p2-soft);
+      color: var(--on-surface);
+    }
+
+    .tag-bonus {
+      background-color: var(--p4-accent);
+      color: var(--on-surface);
+      border: none;
+      box-shadow: var(--shadow-tangerine);
+    }
+
+    /* Sticker Cards */
+    .card {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded);
+      box-shadow: var(--shadow-pink);
+      padding: var(--space-lg);
+      transition: transform var(--dur-short) var(--ease-bounce),
+                  box-shadow var(--dur-short) var(--ease-out);
+    }
+
+    .card-sky { box-shadow: var(--shadow-sky); }
+    .card-grape { box-shadow: var(--shadow-grape); }
+    .card-tangerine { box-shadow: var(--shadow-tangerine); }
+
+    .hero-panel {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded-lg);
+      box-shadow: var(--shadow-pink);
+      padding: var(--space-xl);
+    }
+
+    .section-heading {
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: var(--headline-size);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 0 var(--space-sm) 0;
+      color: var(--on-surface);
+    }
+
+    .sub-heading {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--subhead-size);
+      letter-spacing: -0.015em;
+      margin: 0 0 var(--space-xs) 0;
+      color: var(--on-surface);
+    }
+
+    /* Segmented Controls & Form Inputs */
+    .lobby-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .config-stack {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .field-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--on-surface-variant);
+    }
+
+    .segmented {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      background-color: var(--surface-container-high);
+      padding: var(--space-xs);
+      border-radius: var(--rounded-full);
+    }
+
+    .seg-btn {
+      flex: 1 1 auto;
+      min-height: 44px;
+      border: none;
+      border-radius: var(--rounded-full);
+      padding: var(--space-sm) var(--space-md);
+      background-color: transparent;
+      color: var(--on-surface-variant);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-in-out),
+                  color var(--dur-short) var(--ease-in-out),
+                  transform var(--dur-short) var(--ease-bounce);
+    }
+
+    .seg-btn:hover { color: var(--on-surface); }
+    .seg-btn.active {
+      background-color: var(--primary);
+      color: var(--on-primary);
+      box-shadow: var(--shadow-pink);
+    }
+
+    .select-pill, .input-pill {
+      width: 100%;
+      min-height: 44px;
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container);
+      border: 2px solid var(--outline);
+      color: var(--on-surface);
+      padding: var(--space-sm) var(--space-lg);
+      font-weight: 500;
+      transition: border-color var(--dur-micro) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out);
+    }
+    .select-pill { padding-right: var(--space-xl); }
+    .select-pill:focus, .input-pill:focus {
+      border-color: var(--primary);
+      background-color: var(--surface-container-low);
+      outline: none;
+      box-shadow: 0 0 0 3px var(--p1-soft);
+    }
+
+    .mode-cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+
+    .mode-card {
+      text-align: left;
+      background-color: var(--surface-container);
+      border: 2px solid transparent;
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      min-height: 44px;
+      transition: transform var(--dur-short) var(--ease-bounce),
+                  background-color var(--dur-short) var(--ease-out),
+                  box-shadow var(--dur-short) var(--ease-out);
+    }
+    .mode-card:hover { transform: var(--lift); }
+    .mode-card.active {
+      background-color: var(--surface-container-low);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-pink);
+    }
+
+    /* Player Setup Cards */
+    .player-setup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .player-setup-card {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .player-setup-card.p1 { box-shadow: var(--shadow-pink); background-color: var(--p1-soft); }
+    .player-setup-card.p2 { box-shadow: var(--shadow-sky); background-color: var(--p2-soft); }
+    .player-setup-card.p3 { box-shadow: var(--shadow-grape); background-color: var(--p3-soft); }
+    .player-setup-card.p4 { box-shadow: var(--shadow-tangerine); background-color: var(--p4-soft); }
+
+    .player-setup-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .player-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+    .p1 .player-dot { background-color: var(--data-1); color: var(--on-primary); }
+    .p2 .player-dot { background-color: var(--data-3); color: var(--on-tertiary); }
+    .p3 .player-dot { background-color: var(--data-2); color: var(--on-secondary); }
+    .p4 .player-dot { background-color: var(--data-4); color: var(--on-surface); }
+
+    .key-cap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 28px;
+      padding: 0 var(--space-sm);
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container-low);
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 800;
+      box-shadow: var(--shadow-grape);
+    }
+
+    /* Stats Sidebar Card */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+
+    .metric-pill-box {
+      background-color: var(--surface-container);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .metric-value {
+      font-family: var(--font-headline);
+      font-weight: 900;
+      font-size: var(--headline-size);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--on-surface);
+      line-height: 1.1;
+    }
+
+    /* ARENA VIEW */
+    .arena-topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded-full);
+      padding: var(--space-sm) var(--space-lg);
+      box-shadow: var(--shadow-grape);
+    }
+
+    .progress-wrap {
+      flex: 1 1 220px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 14px;
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container-high);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--tertiary);
+      border-radius: var(--rounded-full);
+      transition: width var(--dur-short) var(--ease-out);
+    }
+
+    .timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      border-radius: var(--rounded-full);
+      padding: var(--space-xs) var(--space-md);
+      background-color: var(--surface-container);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-pill.urgent {
+      background-color: var(--error-soft);
+      color: var(--error);
+    }
+
+    /* Player Arcade Pods */
+    .players-arena {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .player-pod {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      position: relative;
+      transition: transform var(--dur-short) var(--ease-bounce),
+                  box-shadow var(--dur-short) var(--ease-out),
+                  opacity var(--dur-short) var(--ease-out);
+    }
+
+    .player-pod.p1 { box-shadow: var(--shadow-pink); }
+    .player-pod.p2 { box-shadow: var(--shadow-sky); }
+    .player-pod.p3 { box-shadow: var(--shadow-grape); }
+    .player-pod.p4 { box-shadow: var(--shadow-tangerine); }
+
+    .player-pod.active-turn {
+      transform: var(--lift);
+    }
+    .player-pod.p1.active-turn { box-shadow: var(--shadow-pink-deep); outline: 3px solid var(--data-1); }
+    .player-pod.p2.active-turn { box-shadow: var(--shadow-sky-deep); outline: 3px solid var(--data-3); }
+    .player-pod.p3.active-turn { box-shadow: var(--shadow-grape-deep); outline: 3px solid var(--data-2); }
+    .player-pod.p4.active-turn { box-shadow: var(--shadow-tangerine-deep); outline: 3px solid var(--data-4); }
+
+    .player-pod.locked-out {
+      opacity: 0.55;
+    }
+
+    .pod-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xs);
+    }
+
+    .pod-name {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pod-score-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .pod-score {
+      font-family: var(--font-headline);
+      font-weight: 900;
+      font-size: 1.65rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .pod-streak {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      padding: 2px var(--space-sm);
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container);
+      color: var(--on-surface-variant);
+    }
+
+    .buzzer-btn {
+      width: 100%;
+      min-height: 54px;
+      border: none;
+      border-radius: var(--rounded-full);
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: var(--body-size);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      transition: transform var(--dur-short) var(--ease-bounce),
+                  box-shadow var(--dur-short) var(--ease-out);
+      user-select: none;
+    }
+    .buzzer-btn:hover:not(:disabled) { transform: var(--pop-scale); }
+    .buzzer-btn:active:not(:disabled) { transform: scale(0.96); }
+    .buzzer-btn:disabled { cursor: default; opacity: 0.65; }
+
+    .p1 .buzzer-btn { background-color: var(--data-1); color: var(--on-primary); box-shadow: var(--shadow-pink); }
+    .p2 .buzzer-btn { background-color: var(--data-3); color: var(--on-tertiary); box-shadow: var(--shadow-sky); }
+    .p3 .buzzer-btn { background-color: var(--data-2); color: var(--on-secondary); box-shadow: var(--shadow-grape); }
+    .p4 .buzzer-btn { background-color: var(--data-4); color: var(--on-surface); box-shadow: var(--shadow-tangerine); }
+
+    /* Question Stage */
+    .question-stage {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded-lg);
+      box-shadow: var(--shadow-pink);
+      padding: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .stage-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .status-banner {
+      border-radius: var(--rounded-full);
+      padding: var(--space-sm) var(--space-lg);
+      background-color: var(--surface-container);
+      color: var(--on-surface);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    .status-banner.p1 { background-color: var(--p1-soft); }
+    .status-banner.p2 { background-color: var(--p2-soft); }
+    .status-banner.p3 { background-color: var(--p3-soft); }
+    .status-banner.p4 { background-color: var(--p4-soft); }
+    .status-banner.success { background-color: var(--positive-soft); }
+    .status-banner.error { background-color: var(--error-soft); }
+
+    .question-text {
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: var(--headline-size);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin: 0;
+      color: var(--on-surface);
+      max-width: 65ch;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+
+    .option-btn {
+      text-align: left;
+      background-color: var(--surface-container);
+      color: var(--on-surface);
+      border: 2px solid transparent;
+      border-radius: var(--rounded);
+      padding: var(--space-md) var(--space-lg);
+      min-height: 64px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      font-weight: 600;
+      line-height: 1.4;
+      transition: transform var(--dur-short) var(--ease-bounce),
+                  background-color var(--dur-short) var(--ease-out),
+                  box-shadow var(--dur-short) var(--ease-out);
+    }
+    .option-btn:hover:not(:disabled) {
+      transform: var(--lift);
+      background-color: var(--surface-container-low);
+      box-shadow: var(--shadow-grape);
+    }
+    .option-btn:disabled { cursor: default; }
+
+    .option-btn.ready:hover:not(:disabled) {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-pink);
+    }
+
+    .option-btn.correct {
+      background-color: var(--positive);
+      color: var(--on-positive);
+      box-shadow: var(--shadow-sky);
+    }
+    .option-btn.wrong {
+      background-color: var(--error);
+      color: var(--on-error);
+    }
+
+    .option-letter {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container-low);
+      color: var(--on-surface);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: var(--label-size);
+    }
+    .option-btn.correct .option-letter,
+    .option-btn.wrong .option-letter {
+      color: var(--on-surface);
+    }
+
+    .explanation-box {
+      background-color: var(--surface-container);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .explanation-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .explanation-body {
+      margin: 0;
+      color: var(--on-surface);
+      max-width: 65ch;
+    }
+
+    .arena-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    /* PODIUM & ANALYTICS */
+    .podium-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+
+    .podium-card {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      box-shadow: var(--shadow-grape);
+    }
+    .podium-card.rank-1 {
+      box-shadow: var(--shadow-pink-deep);
+      background-color: var(--p1-soft);
+      padding-top: var(--space-xl);
+    }
+
+    /* Lollipop Bar Chart */
+    .lollipop-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .lollipop-row {
+      display: grid;
+      grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) 56px;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .lollipop-label {
+      font-weight: 700;
+      font-size: var(--body-size);
+      color: var(--on-surface);
+    }
+
+    .lollipop-track {
+      height: 16px;
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container-high);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lollipop-bar {
+      height: 100%;
+      border-radius: var(--rounded-full);
+      background-color: var(--data-1);
+      transition: width var(--dur-long) var(--ease-out);
+    }
+    .lollipop-row:nth-child(2) .lollipop-bar { background-color: var(--data-2); }
+    .lollipop-row:nth-child(3) .lollipop-bar { background-color: var(--data-3); }
+    .lollipop-row:nth-child(4) .lollipop-bar { background-color: var(--data-4); }
+    .lollipop-row:nth-child(5) .lollipop-bar { background-color: var(--data-1); }
+
+    .lollipop-pct {
+      font-family: var(--font-label);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    /* STUDY BANK VIEW */
+    .study-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    .study-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+
+    .study-card {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-pink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .study-card:nth-child(3n+2) { box-shadow: var(--shadow-sky); }
+    .study-card:nth-child(3n+3) { box-shadow: var(--shadow-grape); }
+
+    .study-answer {
+      background-color: var(--surface-container);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .hidden { display: none !important; }
+
+    /* Container & Media Queries */
+    .card-wrapper { container-type: inline-size; }
+
+    @media (max-width: 820px) {
+      .lobby-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .site-header { padding: var(--space-md) var(--space-md) 0; }
+      .page-grid { padding: var(--space-md); gap: var(--space-md); }
+      .hero-panel, .question-stage { padding: var(--space-lg); }
+      .options-grid { grid-template-columns: 1fr; }
+      .mode-cards { grid-template-columns: 1fr; }
+      .lollipop-row { grid-template-columns: 1fr 56px; }
+      .lollipop-label { grid-column: 1 / -1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="brand-block">
+      <span class="kicker">Historia del Pensamiento Económico · 1.er Semestre</span>
+      <h1 class="display-title">Duelo <em>Marginal</em></h1>
+      <p class="subtitle">Juego multijugador local estilo arcade para 2, 3 o 4 estudiantes: 30 retos desde el mercantilismo y la fisiocracia hasta Gossen, Menger y el equilibrio neoclásico.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" id="btn-sound" class="btn btn-surface" onclick="toggleSound()" aria-pressed="true">
+        <i data-lucide="volume-2" aria-hidden="true"></i>
+        <span id="sound-label">Sonido ON</span>
+      </button>
+      <button type="button" id="btn-study-nav" class="btn btn-secondary" onclick="toggleStudyView()">
+        <i data-lucide="book-open" aria-hidden="true"></i>
+        <span id="study-nav-label">Banco de Estudio (30)</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-grid">
+
+    <!-- ==================== LOBBY VIEW ==================== -->
+    <section id="view-lobby" aria-label="Configuración de partida">
+      <div class="lobby-grid">
+        <div class="hero-panel config-stack">
+          <div>
+            <span class="badge">Modo Fiesta Local · 2, 3 o 4 Jugadores</span>
+            <h2 class="section-heading" style="margin-top: var(--space-sm);">Configura tu mesa de reto</h2>
+            <p class="subtitle">Compite en la misma pantalla usando toques táctiles o las teclas rápidas <strong>Q, P, Z, M</strong>.</p>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">1. Número de jugadores</span>
+            <div class="segmented" role="group" aria-label="Número de jugadores">
+              <button type="button" class="seg-btn" id="pcount-2" onclick="setPlayerCount(2)">2 Jugadores</button>
+              <button type="button" class="seg-btn" id="pcount-3" onclick="setPlayerCount(3)">3 Jugadores</button>
+              <button type="button" class="seg-btn active" id="pcount-4" onclick="setPlayerCount(4)">4 Jugadores</button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">2. Dinámica de respuesta</span>
+            <div class="mode-cards">
+              <button type="button" class="mode-card active" id="mode-buzzer" onclick="setGameMode('buzzer')">
+                <span class="sub-heading">⚡ Timbre Arcade (Simultáneo)</span>
+                <span class="subtitle">El primero en pulsar su timbre responde en 6s. Si falla, los demás pueden robar por rebote.</span>
+              </button>
+              <button type="button" class="mode-card" id="mode-turn" onclick="setGameMode('turn')">
+                <span class="sub-heading">🎯 Turno Rotativo (Sin Prisas)</span>
+                <span class="subtitle">Cada reto tiene un jugador asignado para pensar y elegir. Si falla, hay rebote en mesa.</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="mode-cards">
+            <div class="field-group">
+              <label class="field-label" for="select-length">3. Duración del reto</label>
+              <select id="select-length" class="select-pill" onchange="setQuestionCount(this.value)">
+                <option value="30" selected>Maratón Completo (30 preguntas)</option>
+                <option value="15">Partida Media (15 preguntas)</option>
+                <option value="10">Duelo Express (10 preguntas)</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="select-topic">4. Bloque doctrinal</label>
+              <select id="select-topic" class="select-pill" onchange="setTopicFilter(this.value)">
+                <option value="all" selected>Todas las doctrinas (30)</option>
+                <option value="Mercantilismo y Fisiocracia">Mercantilismo y Fisiocracia (6)</option>
+                <option value="Escuela Clásica">Escuela Clásica y Valor (6)</option>
+                <option value="Leyes de Gossen">Leyes de Gossen (6)</option>
+                <option value="Menger y Austríacos">Menger, Austria e Interés (6)</option>
+                <option value="Equilibrio Neoclásico">Marshall, Walras y Pareto (6)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">5. Nombres y teclas de timbre</span>
+            <div id="player-setup-grid" class="player-setup-grid"></div>
+          </div>
+
+          <div class="arena-footer">
+            <button type="button" class="btn btn-primary btn-lg" onclick="startMatch()">
+              <i data-lucide="play" aria-hidden="true"></i>
+              <span>¡Comenzar Reto!</span>
+            </button>
+            <span class="kicker">Rondas x2 cada 5 preguntas · Rebote activo</span>
+          </div>
+        </div>
+
+        <aside class="config-stack" style="display: grid !important;">
+          <div class="card card-grape">
+            <span class="tag">Historial en Libreta</span>
+            <h3 class="section-heading" style="margin-top: var(--space-sm);">Marcador del curso</h3>
+            <div id="lobby-stats-content">
+              <p class="subtitle">Aún no hay partidas guardadas. Completa un reto para registrar al campeón y detectar temas a reforzar.</p>
+            </div>
+            <div style="margin-top: var(--space-md); display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+              <button type="button" id="btn-reset-records" class="btn btn-quiet" onclick="handleResetRecords(this)">Reiniciar historial</button>
+            </div>
+          </div>
+
+          <div class="card card-sky">
+            <span class="tag tag-sky">Guía rápida de teclas</span>
+            <h3 class="sub-heading" style="margin-top: var(--space-sm);">Controles en mesa compartida</h3>
+            <p class="subtitle">En PC o laptop pueden jugar hasta 4 personas con un solo teclado:</p>
+            <ul style="margin: var(--space-sm) 0 0; padding-left: var(--space-lg); color: var(--on-surface-variant);">
+              <li><strong>Timbres:</strong> J1 = <kbd>Q</kbd>, J2 = <kbd>P</kbd>, J3 = <kbd>Z</kbd>, J4 = <kbd>M</kbd></li>
+              <li><strong>Opciones:</strong> Teclas <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd> o clic/toque</li>
+              <li><strong>Siguiente pregunta:</strong> <kbd>Espacio</kbd> o <kbd>Enter</kbd></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== ARENA VIEW ==================== -->
+    <section id="view-arena" class="hidden" aria-label="Arena de juego">
+      <div class="config-stack">
+        <div class="arena-topbar">
+          <div class="progress-wrap">
+            <strong id="arena-progress-text" style="white-space: nowrap;">Reto 1 / 30</strong>
+            <div class="progress-track" aria-hidden="true">
+              <div id="arena-progress-fill" class="progress-fill"></div>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm);">
+            <div id="arena-timer-pill" class="timer-pill">
+              <i data-lucide="timer" aria-hidden="true"></i>
+              <span id="arena-timer-val">18s</span>
+            </div>
+            <button type="button" id="btn-pause" class="btn btn-surface" onclick="togglePause()">Pausar</button>
+            <button type="button" id="btn-exit-match" class="btn btn-quiet" onclick="handleExitMatch(this)">Salir</button>
+          </div>
+        </div>
+
+        <div id="players-arena" class="players-arena"></div>
+
+        <div class="question-stage">
+          <div class="stage-meta">
+            <span id="q-category-tag" class="tag">Doctrina</span>
+            <span id="q-bonus-tag" class="tag tag-bonus hidden">⚡ Pregunta x2 Puntos</span>
+          </div>
+
+          <div id="arena-status-banner" class="status-banner" role="status" aria-live="polite">
+            <span id="status-banner-text">¡Pulsa tu timbre (Q, P, Z o M) para responder!</span>
+            <span id="status-banner-sub" class="kicker"></span>
+          </div>
+
+          <h2 id="question-text" class="question-text">Cargando pregunta…</h2>
+
+          <div id="options-grid" class="options-grid"></div>
+
+          <div id="explanation-box" class="explanation-box hidden">
+            <div class="explanation-head">
+              <span id="explanation-badge" class="badge">Fundamento en fuentes</span>
+              <span id="explanation-source" class="kicker"></span>
+            </div>
+            <p id="explanation-text" class="explanation-body"></p>
+            <div>
+              <button type="button" id="btn-next-q" class="btn btn-primary" onclick="nextQuestion()">
+                <span id="next-q-label">Siguiente Reto</span>
+                <i data-lucide="arrow-right" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PODIUM VIEW ==================== -->
+    <section id="view-podium" class="hidden" aria-label="Resultados finales">
+      <div class="config-stack">
+        <div class="hero-panel">
+          <span class="badge">Fin del Reto</span>
+          <h2 id="podium-title" class="display-title" style="margin-top: var(--space-sm);">¡Resultado <em>final</em>!</h2>
+          <p id="podium-subtitle" class="subtitle" style="margin-top: var(--space-xs);"></p>
+
+          <div id="podium-grid" class="podium-grid" style="margin-top: var(--space-xl);"></div>
+
+          <div class="arena-footer" style="margin-top: var(--space-xl);">
+            <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+              <button type="button" class="btn btn-primary btn-lg" onclick="startMatch()">
+                <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+                <span>Jugar Revancha</span>
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="exportMatchCsv()">
+                <i data-lucide="download" aria-hidden="true"></i>
+                <span>Exportar Acta CSV</span>
+              </button>
+              <button type="button" class="btn btn-surface" onclick="returnToLobby()">Volver al Lobby</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lobby-grid">
+          <div class="card card-sky">
+            <span class="tag tag-sky">Análisis por doctrina</span>
+            <h3 class="section-heading" style="margin-top: var(--space-sm);">Precisión del grupo</h3>
+            <p class="subtitle" style="margin-bottom: var(--space-md);">Porcentaje de aciertos en esta partida por bloque histórico.</p>
+            <div id="podium-lollipop" class="lollipop-list"></div>
+          </div>
+
+          <div class="card card-grape">
+            <span class="tag">Repaso recomendado</span>
+            <h3 class="section-heading" style="margin-top: var(--space-sm);">Preguntas a reforzar</h3>
+            <div id="podium-missed-list" class="config-stack" style="margin-top: var(--space-md);"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== STUDY BANK VIEW ==================== -->
+    <section id="view-study" class="hidden" aria-label="Banco de estudio">
+      <div class="config-stack">
+        <div class="hero-panel">
+          <div class="study-controls">
+            <div>
+              <span class="badge">Repaso 1.er Semestre · 30 Preguntas</span>
+              <h2 class="section-heading" style="margin-top: var(--space-sm);">Banco doctrinal de estudio</h2>
+              <p class="subtitle">Explora las 30 preguntas basadas en las fuentes del cuaderno y pon a prueba tu dominio antes del siguiente duelo.</p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: end;">
+              <div class="field-group">
+                <label class="field-label" for="study-filter">Filtrar por escuela</label>
+                <select id="study-filter" class="select-pill" onchange="renderStudyList()">
+                  <option value="all">Todas (30)</option>
+                  <option value="Mercantilismo y Fisiocracia">Mercantilismo y Fisiocracia</option>
+                  <option value="Escuela Clásica">Escuela Clásica y Valor</option>
+                  <option value="Leyes de Gossen">Leyes de Gossen</option>
+                  <option value="Menger y Austríacos">Menger, Austria e Interés</option>
+                  <option value="Equilibrio Neoclásico">Marshall, Walras y Pareto</option>
+                  <option value="missed">Solo preguntas falladas antes</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="toggleStudyView()">Volver al Juego</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="study-list" class="study-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="page-grid" style="padding-top: 0;">
+    <p class="subtitle" style="font-size: var(--label-size);">
+      Fuentes del cuaderno utilizadas: Carl Menger (1871, Teoría subjetiva del valor y jerarquía de bienes), Hermann Heinrich Gossen (1854, <em>Entwickelung der Gesetze des menschlichen Verkehrs</em> y Leyes de Gossen), Alfred Marshall (<em>Principios de economía</em>), Léon Walras (Equilibrio y Economía Social), Vilfredo Pareto, Eugen von Böhm-Bawerk (Teoría del interés) y notas sobre Hedonimetría y Cálculo de Variaciones.
+    </p>
+  </footer>
+
+  <api-shim></api-shim>
+  <script>
+    /* ==================== BANK OF 30 QUESTIONS ==================== */
+    const QUESTIONS = [
+      /* --- BLOQUE 1: MERCANTILISMO Y FISIOCRACIA --- */
+      {
+        id: 1,
+        category: `Mercantilismo y Fisiocracia`,
+        source: `Gossen (1854) · Crítica al Mercantilsystem`,
+        prompt: `Según la crítica de Gossen al sistema mercantilista, ¿qué error fundamental cometía esta corriente al entender el valor y la riqueza?`,
+        options: [
+          `Confundir el dinero y la acumulación monetaria con la verdadera medida del valor y el bienestar`,
+          `Prohibir por completo la acuñación de monedas metálicas en el comercio`,
+          `Considerar que el valor dependía exclusivamente de la satisfacción subjetiva del consumidor`,
+          `Defender que toda tierra cultivable debía pertenecer al Estado sin pagar renta`
+        ],
+        correct: 0,
+        explanation: `En Entwickelung der Gesetze..., Gossen explica que tomar el dinero como medida absoluta del valor llevó al error mercantilista de creer que la sociedad solo gana si acumula dinero a costa de otros.`
+      },
+      {
+        id: 2,
+        category: `Mercantilismo y Fisiocracia`,
+        source: `Gossen (1854) · Obstáculos al libre tráfico`,
+        prompt: `¿Qué medidas restrictivas surgieron del pensamiento mercantilista que Gossen rechaza porque encarecen los bienes y bloquean el intercambio?`,
+        options: [
+          `Aranceles protectores, gremios cerrados, monopolios y concesiones estatales`,
+          `La abolición de todos los impuestos sobre el salario de los obreros`,
+          `La libre entrada de mercancías extranjeras más baratas al mercado local`,
+          `La libertad absoluta de cada ciudadano para elegir cualquier oficio`
+        ],
+        correct: 0,
+        explanation: `Gossen señala explícitamente aranceles (Schutzzölle), gremios (Zunftwesen), monopolios y privilegios como restos del mercantilismo que reducen la producción y benefician a unos pocos a costa del resto.`
+      },
+      {
+        id: 3,
+        category: `Mercantilismo y Fisiocracia`,
+        source: `Leyes de Gossen · Beneficio del intercambio`,
+        prompt: `El mercantilismo veía el comercio como un juego de suma cero (lo que gana un país lo pierde otro). ¿Por qué demuestra el análisis marginalista que el intercambio beneficia a ambos?`,
+        options: [
+          `Porque las personas tienen valoraciones marginales distintas y ambas aumentan su bienestar al trocar excedentes`,
+          `Porque el dinero duplica su peso físico cada vez que cambia de manos`,
+          `Porque el Estado fija un precio único superior al costo en todas las fronteras`,
+          `Porque al intercambiar bienes se destruyen los costos de transporte y los intermediarios`
+        ],
+        correct: 0,
+        explanation: `Cuando intercambiamos lo que ya nos da poca utilidad marginal por algo que deseamos con más urgencia, la suma total de disfrute crece para ambos participantes sin crear un solo objeto físico nuevo.`
+      },
+      {
+        id: 4,
+        category: `Mercantilismo y Fisiocracia`,
+        source: `Historia del Pensamiento · Fisiocracia`,
+        prompt: `En contraste con los mercantilistas (enfocados en el comercio exterior y los metales), ¿en qué actividad ubicaba la Fisiocracia la única fuente de "producto neto" o excedente real?`,
+        options: [
+          `En la agricultura y la capacidad productiva de la naturaleza y la tierra`,
+          `En la intermediación financiera y los préstamos con interés compuesto`,
+          `En las manufacturas urbanas reguladas por los gremios artesanales`,
+          `En el cobro de aranceles aduaneros sobre las exportaciones de grano`
+        ],
+        correct: 0,
+        explanation: `Los fisiócratas sostenían que solo la tierra genera un excedente físico nuevo (producto neto), mientras la industria y el comercio simplemente transforman o trasladan valores ya existentes.`
+      },
+      {
+        id: 5,
+        category: `Mercantilismo y Fisiocracia`,
+        source: `Historia del Pensamiento · Laissez-faire`,
+        prompt: `¿Qué lema célebre acuñó la escuela fisiocrática para oponerse a las trabas, aduanas internas y controles de precios del mercantilismo?`,
+        options: [
+          `"Laissez faire, laissez passer" (dejar hacer, dejar pasar)`,
+          `"Más oro en las arcas, menos importaciones del extranjero"`,
+          `"El valor de toda mercancía equivale al tiempo de trabajo social"`,
+          `"Solo los bienes de primer orden tienen utilidad económica"`
+        ],
+        correct: 0,
+        explanation: `Al defender un "orden natural" económico, los fisiócratas impulsaron la libertad de producción y circulación ("laissez faire, laissez passer"), sentando bases clave del liberalismo clásico.`
+      },
+      {
+        id: 6,
+        category: `Mercantilismo y Fisiocracia`,
+        source: `Gossen (1854) & Walras · Renta de la tierra`,
+        prompt: `Aunque defendían el libre mercado, ¿qué propuesta compartieron Gossen y Léon Walras respecto a la propiedad del suelo y la renta de la tierra?`,
+        options: [
+          `Que el Estado adquiera o nacionalice la tierra y la arriende al mejor postor para financiar servicios públicos`,
+          `Que se prohíba cultivar tierras fértiles para mantener altos los precios agrícolas`,
+          `Que los terratenientes reciban subsidios permanentes libres de toda competencia`,
+          `Que la tierra vuelva a repartirse únicamente entre los gremios medievales`
+        ],
+        correct: 0,
+        explanation: `Tanto Gossen como Walras propusieron la propiedad pública del suelo arrendada al mejor postor: así la comunidad aprovecha la renta territorial sin asfixiar con impuestos el trabajo ni la iniciativa privada.`
+      },
+
+      /* --- BLOQUE 2: ESCUELA CLÁSICA Y TRANSICIÓN --- */
+      {
+        id: 7,
+        category: `Escuela Clásica`,
+        source: `Carl Menger (1871) · Crítica al dogma clásico`,
+        prompt: `¿Qué teoría del valor defendían la Escuela Clásica y los pensadores marxistas antes de que Carl Menger la refutara en 1871?`,
+        options: [
+          `La teoría del valor-trabajo, que vincula el valor al trabajo o costo de producción incorporado`,
+          `La teoría subjetiva de la utilidad marginal decreciente`,
+          `La teoría de la imputación en reversa desde el consumidor final`,
+          `La teoría monetaria del equilibrio general simultáneo`
+        ],
+        correct: 0,
+        explanation: `Clásicos y marxistas explicaban el valor de forma objetiva a partir del trabajo o costo pasado incorporado en el bien; Menger demostró que el valor reside en el juicio subjetivo del consumidor.`
+      },
+      {
+        id: 8,
+        category: `Escuela Clásica`,
+        source: `Gossen (1854) · División del trabajo`,
+        prompt: `Al igual que Adam Smith en la Escuela Clásica, Gossen analiza la división del trabajo. Según Gossen, ¿qué necesita un productor para especializarse en fabricar un solo bien?`,
+        options: [
+          `Saber con certeza en qué medida podrá intercambiar su excedente por otros bienes gracias al dinero`,
+          `Recibir una orden directa del ministerio de comercio fijando su cuota anual`,
+          `Consumir él mismo toda la producción que fabrica antes de ir al mercado`,
+          `Asegurarse de que ningún competidor pueda fabricar un bien parecido en el país`
+        ],
+        correct: 0,
+        explanation: `Gossen explica que alguien solo limita su actividad a producir un único bien en masa cuando existe un patrón de cambio (dinero) que le permite calcular qué disfrutará a cambio.`
+      },
+      {
+        id: 9,
+        category: `Escuela Clásica`,
+        source: `Carl Menger (1840–1921) · Observación de campo`,
+        prompt: `En su juventud como periodista económico, ¿qué observó Carl Menger en los mercados reales que contradecía la explicación clásica de los precios?`,
+        options: [
+          `Que los comerciantes ignoraban sus costos pasados de producción y fijaban precios según el deseo del cliente`,
+          `Que todos los comerciantes cobraban exactamente el salario promedio más un 5% fijo`,
+          `Que los consumidores pagaban más por un bien cuanto más lento hubiera sido fabricarlo`,
+          `Que los precios nunca cambiaban aunque variaran los gustos de los compradores`
+        ],
+        correct: 0,
+        explanation: `La observación directa de Menger mostró que si nadie desea un bien, se vende por debajo de su costo; y si todos lo desean con urgencia, su precio sube sin importar lo barato que fue producirlo.`
+      },
+      {
+        id: 10,
+        category: `Escuela Clásica`,
+        source: `Gossen (1854) · Determinación de la renta`,
+        prompt: `Cuando alguien quiere arrendar una finca agrícola para producir, ¿qué criterio económico determina la renta que está dispuesto a pagar según Gossen?`,
+        options: [
+          `Los productos que espera obtener y el precio al que calcula venderlos en el mercado`,
+          `La suma histórica de todo lo que gastaron los dueños anteriores en edificios hace siglos`,
+          `El precio original que pagó el propietario actual cuando heredó o compró la finca`,
+          `Una tarifa fija dictada por la costumbre feudal sin relación con la productividad`
+        ],
+        correct: 0,
+        explanation: `Gossen anticipa la lógica marginalista de la renta: el arrendatario calcula rendimientos y precios futuros esperados, independientemente de los costos hundidos del pasado.`
+      },
+      {
+        id: 11,
+        category: `Escuela Clásica`,
+        source: `Marginalismo · Paradoja del valor`,
+        prompt: `Los economistas clásicos se preguntaban por qué el agua (esencial para vivir) vale mucho menos que un diamante (prescindible). ¿Cómo resuelve esto la teoría marginalista?`,
+        options: [
+          `Porque el precio refleja la utilidad de la última unidad disponible (marginal), no la utilidad total del bien`,
+          `Porque extraer diamantes requiere menos conocimiento humano que purificar agua`,
+          `Porque el agua es un bien de orden superior y el diamante es un bien de primer orden`,
+          `Porque los diamantes son necesarios para la supervivencia biológica inmediata`
+        ],
+        correct: 0,
+        explanation: `Al haber tanta agua disponible, una unidad adicional satisface una necesidad muy poco urgente; al ser escasos los diamantes, una unidad adicional tiene una utilidad marginal altísima.`
+      },
+      {
+        id: 12,
+        category: `Escuela Clásica`,
+        source: `Carl Menger · Ley de Imputación de Valor`,
+        prompt: `Frente a la idea clásica de que el costo de los insumos determina el precio final del producto, ¿qué afirma la Ley de Imputación de Valor de Menger?`,
+        options: [
+          `El valor fluye en reversa: nace en el deseo del consumidor final y viaja hacia atrás hasta las materias primas`,
+          `El valor nace en la mina o el campo y se suma hacia adelante hasta llegar al consumidor`,
+          `Solo el trabajo manual tiene la capacidad de transferir valor a las herramientas`,
+          `Los bienes de capital valen siempre más que los bienes de consumo que producen`
+        ],
+        correct: 0,
+        explanation: `Según Menger, el valor de la harina y de los hornos existe porque los consumidores desean el pan horneado: el valor se imputa desde el consumo final hacia la producción.`
+      },
+
+      /* --- BLOQUE 3: HERMANN HEINRICH GOSSEN Y SUS LEYES --- */
+      {
+        id: 13,
+        category: `Leyes de Gossen`,
+        source: `Gossen (1854) · Prólogo de Entwickelung`,
+        prompt: `En el prólogo de su libro de 1854, ¿con qué gran figura científica se comparó Hermann Heinrich Gossen por descubrir la fuerza que rige la sociedad humana?`,
+        options: [
+          `Con Nicolás Copérnico y su descubrimiento de las leyes que ordenan los astros en el espacio`,
+          `Con Charles Darwin y la teoría de la selección natural en las islas`,
+          `Con Antoine Lavoisier y la tabla periódica de los elementos químicos`,
+          `Con James Watt y la invención de la máquina de vapor industrial`
+        ],
+        correct: 0,
+        explanation: `Gossen creía haber logrado para la convivencia humana lo mismo que Copérnico para la astronomía: descubrir las leyes matemáticas de la "fuerza del disfrute" que ordenan la cooperación social.`
+      },
+      {
+        id: 14,
+        category: `Leyes de Gossen`,
+        source: `Primera Ley de Gossen · Utilidad marginal decreciente`,
+        prompt: `El primer bocado de tu comida favorita te da un placer enorme, el segundo un poco menos y el quinto casi te deja indiferente. ¿Qué ley describe este fenómeno?`,
+        options: [
+          `La Primera Ley de Gossen (ley de la utilidad marginal decreciente hasta la saciedad)`,
+          `La Tercera Ley de Gossen sobre bienes libres sin escasez`,
+          `El Teorema de Walras sobre la nacionalización de las rentas`,
+          `La Ley de hierro de los salarios de la escuela mercantilista`
+        ],
+        correct: 0,
+        explanation: `Gossen formuló que la magnitud de un mismo placer disminuye continuamente si proseguimos disfrutándolo sin interrupción, hasta llegar finalmente al punto de saciedad.`
+      },
+      {
+        id: 15,
+        category: `Leyes de Gossen`,
+        source: `Segunda Ley de Gossen · Equimarginalidad`,
+        prompt: `Tienes 3 horas libres y te gustan tanto las series como los videojuegos. Según la Segunda Ley de Gossen, ¿cómo logras la mayor satisfacción total?`,
+        options: [
+          `Combinando ambas actividades hasta que el placer del último minuto en series iguale al del último minuto en videojuegos`,
+          `Dedicando las 3 horas seguidas solo a la actividad que te gustó más en el primer minuto`,
+          `Repartiendo exactamente 90 minutos a cada una sin importar cuánto te aburra alguna`,
+          `Evitando ambas actividades porque la saciedad elimina el valor de todo entretenimiento`
+        ],
+        correct: 0,
+        explanation: `La Segunda Ley de Gossen (equimarginalidad) establece que con tiempo o dinero escaso debemos igualar la utilidad marginal de la última unidad asignada a cada bien o actividad.`
+      },
+      {
+        id: 16,
+        category: `Leyes de Gossen`,
+        source: `Tercera Ley de Gossen · Escasez y valor`,
+        prompt: `¿Qué afirma la Tercera Ley de Gossen respecto a la relación entre la escasez de un bien y su valor económico?`,
+        options: [
+          `Un bien solo tiene valor económico si la cantidad disponible es menor que la necesaria para alcanzar la saciedad completa`,
+          `Un bien adquiere su máximo valor económico justo después de haber superado la saciedad total`,
+          `Todos los bienes útiles tienen siempre un valor positivo aunque sean infinitamente abundantes`,
+          `La escasez no influye en el valor; solo importa el esfuerzo de fabricación`
+        ],
+        correct: 0,
+        explanation: `Según la Tercera Ley de Gossen, cuando un bien existe en cantidad suficiente para satisfacer por completo la necesidad, las unidades sobrantes tienen utilidad marginal cero y carecen de valor económico.`
+      },
+      {
+        id: 17,
+        category: `Leyes de Gossen`,
+        source: `Gossen (1854) · Método geométrico y matemático`,
+        prompt: `¿Por qué Gossen defendió que la verdadera economía nacional no puede explicarse sin la ayuda de las matemáticas y diagramas geométricos?`,
+        options: [
+          `Porque la economía estudia el resultado de fuerzas que interactúan (placer y esfuerzo), imposible de calcular sin matemáticas`,
+          `Porque quería ocultar sus conclusiones para que solo los banqueros pudieran leer su libro`,
+          `Porque los triángulos geométricos sustituyen por completo la necesidad de observar la realidad`,
+          `Porque en 1854 estaba prohibido publicar libros de economía escritos solo con palabras`
+        ],
+        correct: 0,
+        explanation: `En su prólogo, Gossen afirma que así como la física y la astronomía necesitan matemáticas para calcular fuerzas en equilibrio, la economía necesita geometría y cálculo de máximos para estudiar el goce y el trabajo.`
+      },
+      {
+        id: 18,
+        category: `Leyes de Gossen`,
+        source: `Gossen (1854) · El dinero entre los niños`,
+        prompt: `Para ilustrar qué fácil surge el dinero de manera natural sin que lo imponga un gobierno, ¿qué ejemplo real cita Gossen en su obra?`,
+        options: [
+          `Los niños que espontáneamente usan canicas o alfileres como dinero para intercambiar cromos, trompos o pelotas`,
+          `Los bancos centrales europeos imprimiendo billetes respaldados por leyes parlamentarias`,
+          `Los emperadores romanos fijando precios máximos en tablillas de mármol`,
+          `Los comerciantes venecianos firmando tratados militares para prohibir el trueque`
+        ],
+        correct: 0,
+        explanation: `Gossen observa que los niños, incluso apartados del comercio adulto, eligen espontáneamente un objeto duradero y apreciado (canicas en niños, agujas en niñas) como medio de cambio común.`
+      },
+
+      /* --- BLOQUE 4: MENGER, ESCUELA AUSTRÍACA E INTERÉS --- */
+      {
+        id: 19,
+        category: `Menger y Austríacos`,
+        source: `Carl Menger (1871) · Pilares marginalistas`,
+        prompt: `¿Cuál de las siguientes ideas representa el concepto de "Dinero Espontáneo" dentro de los pilares marginalistas de Carl Menger?`,
+        options: [
+          `El dinero surgió evolutivamente de la acción humana libre para facilitar el intercambio, no del diseño de un Estado`,
+          `El dinero solo adquiere aceptación cuando un decreto real obliga a cobrar impuestos en esa moneda`,
+          `El dinero es una mercancía sin utilidad alguna cuyo valor depende de la cantidad de papel impreso`,
+          `El dinero debe desaparecer en economías modernas para volver al trueque directo`
+        ],
+        correct: 0,
+        explanation: `Para Menger, los individuos buscaron bienes cada vez más líquidos y aceptados en el mercado, dando origen al dinero de forma espontánea sin necesidad de un planificador estatal.`
+      },
+      {
+        id: 20,
+        category: `Menger y Austríacos`,
+        source: `Carl Menger · Teoría General del Bien`,
+        prompt: `Para que una simple "cosa" se convierta en un bien económico, Menger exige 4 requisitos simultáneos: Necesidad humana, Causalidad, Conocimiento de esa conexión y...`,
+        options: [
+          `Disposición: tener acceso y control físico o legal sobre la cosa para poder usarla`,
+          `Aprobación: contar con un certificado gremial que autorice su venta`,
+          `Trabajo previo: haber invertido al menos una jornada laboral en extraerla`,
+          `Durabilidad: que el objeto no se desgaste nunca al ser consumido`
+        ],
+        correct: 0,
+        explanation: `Si tienes sed (necesidad), el agua hidrata (causalidad) y sabes que hidrata (conocimiento), pero el agua está en Marte sin acceso posible (falta disposición), no es un bien para ti.`
+      },
+      {
+        id: 21,
+        category: `Menger y Austríacos`,
+        source: `Carl Menger · Jerarquía Productiva`,
+        prompt: `En la jerarquía productiva de Carl Menger, si comparamos "el pan horneado" frente a "la harina y los hornos", ¿cómo se clasifican?`,
+        options: [
+          `El pan es un bien de Primer Orden (consumo directo) y la harina y los hornos son bienes de Orden Superior (capital)`,
+          `La harina es un bien de Primer Orden porque existe antes en el tiempo que el pan`,
+          `Los hornos son bienes de Primer Orden porque duran más años que el pan`,
+          `Todos pertenecen al mismo orden porque se compran con dinero en el mercado`
+        ],
+        correct: 0,
+        explanation: `Menger ordena los bienes desde el consumo final hacia atrás: los bienes de consumo directo son de primer orden, y las herramientas e insumos subordinados a producirlos son de orden superior.`
+      },
+      {
+        id: 22,
+        category: `Menger y Austríacos`,
+        source: `Carl Menger · Biografía y contexto`,
+        prompt: `Además de publicar en 1871 la obra que inició la Escuela Austríaca, ¿qué papel histórico desempeñó Carl Menger en la corte de Viena?`,
+        options: [
+          `Fue tutor e instructor económico del príncipe heredero Rodolfo de Habsburgo`,
+          `Fue ministro de hacienda encargado de diseñar aranceles mercantilistas`,
+          `Dirigió la oficina estadística del gobierno prusiano junto con Gossen`,
+          `Fue presidente del primer sindicato marxista de Austria`
+        ],
+        correct: 0,
+        explanation: `Su tutoría imperial al príncipe Rodolfo de Habsburgo le dio enorme prestigio e influencia en la corte vienesa y en la academia europea.`
+      },
+      {
+        id: 23,
+        category: `Menger y Austríacos`,
+        source: `Böhm-Bawerk · Núcleo de la teoría del interés`,
+        prompt: `¿Cuál es la proposición fundamental que forma el núcleo de la teoría del interés de Eugen von Böhm-Bawerk?`,
+        options: [
+          `Los bienes presentes tienen, por regla general, un valor mayor que los bienes futuros de la misma clase y cantidad`,
+          `Los bienes futuros siempre valen más que los presentes porque el dinero ahorrado no se gasta`,
+          `El interés es una multa artificial creada por los bancos privados en el siglo XIX`,
+          `Las personas son totalmente indiferentes entre recibir un recurso hoy o recibirlo dentro de diez años`
+        ],
+        correct: 0,
+        explanation: `Dado que las personas prefieren disponer de recursos de inmediato, para aceptar bienes futuros en lugar de presentes se requiere una compensación: ahí nace la tasa de interés.`
+      },
+      {
+        id: 24,
+        category: `Menger y Austríacos`,
+        source: `Böhm-Bawerk · Las 3 razones del interés`,
+        prompt: `Böhm-Bawerk explica la preferencia por los bienes presentes mediante tres razones: 1) diferencias entre necesidades y recursos, 2) subestimación del futuro, y 3)...`,
+        options: [
+          `La superioridad técnica de los procesos productivos indirectos (usar capital y herramientas produce más)`,
+          `La existencia de impuestos estatales que prohíben prestar sin cobrar intereses`,
+          `La caída perpetua de la población agrícola en los países industrializados`,
+          `La imposibilidad física de almacenar bienes de consumo durante más de un mes`
+        ],
+        correct: 0,
+        explanation: `Los procesos productivos indirectos (invertir tiempo en hacer redes, máquinas o herramientas antes de producir) multiplican el rendimiento, lo que convierte al capital presente en algo especialmente valioso.`
+      },
+
+      /* --- BLOQUE 5: EQUILIBRIO NEOCLÁSICO (MARSHALL, WALRAS, PARETO, HEDONIMETRÍA) --- */
+      {
+        id: 25,
+        category: `Equilibrio Neoclásico`,
+        source: `Alfred Marshall · Principios de economía`,
+        prompt: `¿Cómo integró Alfred Marshall las visiones opuestas de la Escuela Clásica (costos) y el primer Marginalismo (utilidad) para explicar los precios?`,
+        options: [
+          `Demostrando que los precios se entienden considerando conjuntamente la oferta y la demanda`,
+          `Rechazando por completo el papel de la demanda para volver al valor-trabajo`,
+          `Afirmando que solo los monopolios estatales pueden fijar precios justos`,
+          `Eliminando el análisis del trabajo y del capital de la microeconomía`
+        ],
+        correct: 0,
+        explanation: `Marshall unió oferta (costos y producción) y demanda (utilidad marginal) en un marco coherente, ayudando a construir la microeconomía moderna y consolidando la economía como disciplina académica.`
+      },
+      {
+        id: 26,
+        category: `Equilibrio Neoclásico`,
+        source: `Alfred Marshall · Herramientas y enfoque humano`,
+        prompt: `Además de recordar que "la economía trata de las personas y cómo viven", ¿qué dos célebres conceptos técnicos desarrolló Alfred Marshall?`,
+        options: [
+          `La elasticidad de la demanda y el excedente del consumidor`,
+          `La Primera y la Segunda Ley de la utilidad marginal decreciente`,
+          `Los bienes de primer orden y la ley de imputación de valor`,
+          `El producto neto agrícola y las tablas de trueque infantil`
+        ],
+        correct: 0,
+        explanation: `La elasticidad de la demanda (cuánto cambia la cantidad comprada al variar el precio) y el excedente del consumidor (beneficio neto que gana el comprador) son pilares creados por Marshall.`
+      },
+      {
+        id: 27,
+        category: `Equilibrio Neoclásico`,
+        source: `Léon Walras · Economía pura y social`,
+        prompt: `¿Por qué se ha descrito a Léon Walras —autor de la Teoría del Equilibrio— como un "socialista científico" en su vertiente de Economía Social?`,
+        options: [
+          `Porque separó la economía pura de la economía social, proponiendo nacionalizar tierras y eliminar impuestos salariales`,
+          `Porque propuso abolir todos los precios de mercado y prohibir el dinero espontáneo`,
+          `Porque defendió que los gremios mercantilistas debían controlar toda la industria europea`,
+          `Porque rechazó el uso de ecuaciones matemáticas en el estudio del equilibrio`
+        ],
+        correct: 0,
+        explanation: `Walras distinguió las leyes puras del equilibrio de mercado de sus ideales de justicia social: arrendamiento estatal del suelo como única renta, igualdad de oportunidades y cero impuestos sobre los salarios.`
+      },
+      {
+        id: 28,
+        category: `Equilibrio Neoclásico`,
+        source: `Vilfredo Pareto · Equilibrio y eficiencia`,
+        prompt: `¿Cuál es la aportación central de Vilfredo Pareto que sigue vigente hoy en microeconomía y análisis del bienestar?`,
+        options: [
+          `Explicar cómo las decisiones interconectadas de consumidores y productores alcanzan equilibrio y eficiencia ante recursos limitados`,
+          `Demostrar que el equilibrio económico solo existe si el Estado fija los gustos de los consumidores`,
+          `Probar que los precios son independientes de los gustos y de la escasez de recursos`,
+          `Reemplazar toda la microeconomía por la teoría fisiocrática del producto neto`
+        ],
+        correct: 0,
+        explanation: `Pareto profundizó el equilibrio neoclásico mostrando cómo precios, preferencias y recursos limitados enlazan las decisiones de oferta y demanda para evaluar la eficiencia en la asignación de recursos.`
+      },
+      {
+        id: 29,
+        category: `Equilibrio Neoclásico`,
+        source: `Hedonimetría · Teorema de Marshall y Walras`,
+        prompt: `Según las notas sobre hedonimetría y cálculo de variaciones, ¿qué afirma el teorema de Marshall y Walras sobre igualar oferta y demanda?`,
+        options: [
+          `Que igualar oferta y demanda es condición necesaria, pero no suficiente, para garantizar un máximo o equilibrio estable`,
+          `Que igualar oferta y demanda garantiza automáticamente la felicidad perfecta sin mirar la segunda variación`,
+          `Que la oferta siempre debe superar a la demanda como en la hidrodinámica de fluidos`,
+          `Que las matemáticas de máximos y mínimos no pueden aplicarse a precios de mercado`
+        ],
+        correct: 0,
+        explanation: `Para confirmar un verdadero máximo de bienestar o equilibrio estable, no basta con que la primera derivada sea cero (oferta = demanda); el signo de la segunda variación debe mostrar tasa decreciente.`
+      },
+      {
+        id: 30,
+        category: `Equilibrio Neoclásico`,
+        source: `Hedonimetría · Leyes económicas equivalentes`,
+        prompt: `En el análisis matemático de la utilidad y la producción, ¿qué tres leyes se consideran equivalentes porque todas presentan una tasa de incremento decreciente?`,
+        options: [
+          `Ley de rendimientos decrecientes, utilidad marginal decreciente y fatiga creciente`,
+          `Valor-trabajo, balanza comercial favorable y producto neto agrícola`,
+          `Dinero espontáneo, monopolio gremial y aranceles protectores`,
+          `Subestimación del futuro, impuestos salariales y bienes libres`
+        ],
+        correct: 0,
+        explanation: `Las tres responden al mismo principio marginal: añadir unidades iguales de consumo (utilidad), de factor productivo (rendimientos) o de trabajo continuo (fatiga) produce incrementos netos cada vez menores.`
+      }
+    ];
+
+    /* ==================== STATE & CONFIGURATION ==================== */
+    const DEFAULT_PLAYERS = [
+      { id: 0, cls: `p1`, key: `q`, keyLabel: `Q`, defaultName: `J1 · Mercantil`, shadow: `--shadow-pink` },
+      { id: 1, cls: `p2`, key: `p`, keyLabel: `P`, defaultName: `J2 · Clásico`, shadow: `--shadow-sky` },
+      { id: 2, cls: `p3`, key: `z`, keyLabel: `Z`, defaultName: `J3 · Fisiócrata`, shadow: `--shadow-grape` },
+      { id: 3, cls: `p4`, key: `m`, keyLabel: `M`, defaultName: `J4 · Marginal`, shadow: `--shadow-tangerine` }
+    ];
+
+    let config = {
+      playerCount: 4,
+      gameMode: `buzzer`,
+      questionCount: 30,
+      topicFilter: `all`,
+      names: DEFAULT_PLAYERS.map(p => p.defaultName),
+      soundEnabled: true
+    };
+
+    let persistedStats = {
+      matchesPlayed: 0,
+      highScore: 0,
+      highScorePlayer: ``,
+      lastWinner: ``,
+      missedQuestionIds: []
+    };
+
+    let match = {
+      active: false,
+      paused: false,
+      questions: [],
+      qIndex: 0,
+      players: [],
+      phase: `idle`, // 'waiting_buzz' | 'answering' | 'revealed'
+      activePlayerIdx: null,
+      turnOwnerIdx: 0,
+      lockedOutIds: [],
+      timerVal: 18,
+      timerHandle: null,
+      categoryStats: {},
+      matchMissedIds: []
+    };
+
+    let audioCtx = null;
+
+    /* ==================== WEB AUDIO SYNTHESIZER ==================== */
+    function playTone(freq, duration, type, volume) {
+      if (!config.soundEnabled) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        if (audioCtx.state === `suspended`) audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type || `sine`;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume || 0.14, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        /* Safe fallback if audio blocked */
+      }
+    }
+
+    function playBuzzerSound(playerIdx) {
+      const pitches = [523.25, 659.25, 783.99, 880.0];
+      playTone(pitches[playerIdx] || 523.25, 0.14, `triangle`, 0.18);
+    }
+
+    function playCorrectSound() {
+      playTone(523.25, 0.12, `sine`, 0.16);
+      setTimeout(() => playTone(659.25, 0.12, `sine`, 0.16), 90);
+      setTimeout(() => playTone(783.99, 0.22, `sine`, 0.18), 180);
+    }
+
+    function playWrongSound() {
+      playTone(220, 0.18, `sawtooth`, 0.12);
+      setTimeout(() => playTone(165, 0.24, `sawtooth`, 0.12), 140);
+    }
+
+    function playVictorySound() {
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((n, idx) => {
+        setTimeout(() => playTone(n, 0.22, `triangle`, 0.16), idx * 110);
+      });
+    }
+
+    /* ==================== UTILITY FUNCTIONS ==================== */
+    function shuffleArray(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = tmp;
+      }
+      return copy;
+    }
+
+    function prepareQuestionInstance(q) {
+      const tagged = q.options.map((text, idx) => ({
+        text: text,
+        isCorrect: idx === q.correct
+      }));
+      const shuffled = shuffleArray(tagged);
+      return {
+        id: q.id,
+        category: q.category,
+        source: q.source,
+        prompt: q.prompt,
+        explanation: q.explanation,
+        options: shuffled.map(item => item.text),
+        correct: shuffled.findIndex(item => item.isCorrect)
+      };
+    }
+
+    function showView(viewId) {
+      const views = [`view-lobby`, `view-arena`, `view-podium`, `view-study`];
+      views.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (id === viewId) el.classList.remove(`hidden`);
+        else el.classList.add(`hidden`);
+      });
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    async function savePersistedState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+          await window.notebookAppApi.setAppState({
+            config: {
+              playerCount: config.playerCount,
+              gameMode: config.gameMode,
+              questionCount: config.questionCount,
+              topicFilter: config.topicFilter,
+              names: config.names,
+              soundEnabled: config.soundEnabled
+            },
+            stats: persistedStats
+          });
+        }
+      } catch (e) {
+        /* Ignore storage errors gracefully */
+      }
+    }
+
+    /* ==================== LOBBY HANDLERS ==================== */
+    function toggleSound() {
+      config.soundEnabled = !config.soundEnabled;
+      updateSoundButton();
+      savePersistedState();
+    }
+
+    function updateSoundButton() {
+      const btn = document.getElementById(`btn-sound`);
+      const label = document.getElementById(`sound-label`);
+      if (btn) btn.setAttribute(`aria-pressed`, config.soundEnabled ? `true` : `false`);
+      if (label) label.textContent = config.soundEnabled ? `Sonido ON` : `Silencio`;
+    }
+
+    function setPlayerCount(count) {
+      config.playerCount = count;
+      [2, 3, 4].forEach(n => {
+        const el = document.getElementById(`pcount-${n}`);
+        if (!el) return;
+        if (n === count) el.classList.add(`active`);
+        else el.classList.remove(`active`);
+      });
+      renderPlayerSetupCards();
+      savePersistedState();
+    }
+
+    function setGameMode(mode) {
+      config.gameMode = mode;
+      const bEl = document.getElementById(`mode-buzzer`);
+      const tEl = document.getElementById(`mode-turn`);
+      if (bEl) bEl.classList.toggle(`active`, mode === `buzzer`);
+      if (tEl) tEl.classList.toggle(`active`, mode === `turn`);
+      savePersistedState();
+    }
+
+    function setQuestionCount(val) {
+      config.questionCount = parseInt(val, 10) || 30;
+      savePersistedState();
+    }
+
+    function setTopicFilter(val) {
+      config.topicFilter = val;
+      const lenSel = document.getElementById(`select-length`);
+      if (val !== `all` && lenSel) {
+        /* Topic blocks have 6 questions each; keep select synced cleanly */
+      }
+      savePersistedState();
+    }
+
+    function updatePlayerName(idx, val) {
+      const clean = (val || ``).trim();
+      config.names[idx] = clean || DEFAULT_PLAYERS[idx].defaultName;
+      savePersistedState();
+    }
+
+    function renderPlayerSetupCards() {
+      const container = document.getElementById(`player-setup-grid`);
+      if (!container) return;
+      container.innerHTML = ``;
+      for (let i = 0; i < config.playerCount; i++) {
+        const pMeta = DEFAULT_PLAYERS[i];
+        const card = document.createElement(`div`);
+        card.className = `player-setup-card ${pMeta.cls}`;
+
+        const head = document.createElement(`div`);
+        head.className = `player-setup-head`;
+
+        const badge = document.createElement(`span`);
+        badge.className = `player-dot`;
+        badge.textContent = `Jugador ${i + 1}`;
+
+        const keyBadge = document.createElement(`span`);
+        keyBadge.className = `key-cap`;
+        keyBadge.textContent = `Tecla ${pMeta.keyLabel}`;
+
+        head.appendChild(badge);
+        head.appendChild(keyBadge);
+
+        const group = document.createElement(`div`);
+        group.className = `field-group`;
+
+        const lbl = document.createElement(`label`);
+        lbl.className = `field-label`;
+        lbl.setAttribute(`for`, `player-name-${i}`);
+        lbl.textContent = `Nombre en pantalla`;
+
+        const input = document.createElement(`input`);
+        input.type = `text`;
+        input.id = `player-name-${i}`;
+        input.className = `input-pill`;
+        input.maxLength = 22;
+        input.value = config.names[i] || pMeta.defaultName;
+        input.setAttribute(`onchange`, `updatePlayerName(${i}, this.value)`);
+        input.setAttribute(`oninput`, `updatePlayerName(${i}, this.value)`);
+
+        group.appendChild(lbl);
+        group.appendChild(input);
+
+        card.appendChild(head);
+        card.appendChild(group);
+        container.appendChild(card);
+      }
+    }
+
+    function renderLobbyStats() {
+      const box = document.getElementById(`lobby-stats-content`);
+      if (!box) return;
+      if (persistedStats.matchesPlayed === 0) {
+        box.innerHTML = `<p class="subtitle">Aún no hay partidas guardadas en esta libreta. ¡Juega la primera ronda para registrar campeones y preguntas a reforzar!</p>`;
+        return;
+      }
+      box.innerHTML = `
+        <div class="stats-grid" style="margin-top: var(--space-sm);">
+          <div class="metric-pill-box">
+            <span class="kicker">Partidas</span>
+            <span class="metric-value">${persistedStats.matchesPlayed}</span>
+          </div>
+          <div class="metric-pill-box">
+            <span class="kicker">Récord</span>
+            <span class="metric-value">${persistedStats.highScore}</span>
+          </div>
+        </div>
+        <p class="subtitle" style="margin-top: var(--space-md);">
+          Último ganador: <strong>${escapeHtml(persistedStats.lastWinner || `—`)}</strong><br>
+          Preguntas marcadas para repaso: <strong>${persistedStats.missedQuestionIds.length}</strong>
+        </p>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, `&amp;`)
+        .replace(/</g, `&lt;`)
+        .replace(/>/g, `&gt;`)
+        .replace(/"/g, `&quot;`);
+    }
+
+    function handleResetRecords(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `Pulsa otra vez para borrar`;
+        setTimeout(() => {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `Reiniciar historial`;
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `Reiniciar historial`;
+      persistedStats = {
+        matchesPlayed: 0,
+        highScore: 0,
+        highScorePlayer: ``,
+        lastWinner: ``,
+        missedQuestionIds: []
+      };
+      renderLobbyStats();
+      savePersistedState();
+    }
+
+    /* ==================== MATCH ENGINE ==================== */
+    function startMatch() {
+      clearMatchTimer();
+      let pool = QUESTIONS.slice();
+      if (config.topicFilter !== `all`) {
+        pool = pool.filter(q => q.category === config.topicFilter);
+      }
+      const shuffledPool = shuffleArray(pool);
+      const limit = config.topicFilter === `all` ? Math.min(config.questionCount, shuffledPool.length) : shuffledPool.length;
+
+      match.questions = shuffledPool.slice(0, limit).map(prepareQuestionInstance);
+      match.qIndex = 0;
+      match.active = true;
+      match.paused = false;
+      match.turnOwnerIdx = 0;
+      match.categoryStats = {};
+      match.matchMissedIds = [];
+      match.players = [];
+
+      for (let i = 0; i < config.playerCount; i++) {
+        const meta = DEFAULT_PLAYERS[i];
+        match.players.push({
+          id: i,
+          cls: meta.cls,
+          key: meta.key,
+          keyLabel: meta.keyLabel,
+          name: (config.names[i] || meta.defaultName).trim(),
+          score: 0,
+          streak: 0,
+          bestStreak: 0,
+          correctCount: 0,
+          attempts: 0
+        });
+      }
+
+      const exitBtn = document.getElementById(`btn-exit-match`);
+      if (exitBtn) {
+        exitBtn.dataset.armed = `false`;
+        exitBtn.textContent = `Salir`;
+      }
+
+      showView(`view-arena`);
+      loadCurrentQuestion();
+    }
+
+    function loadCurrentQuestion() {
+      clearMatchTimer();
+      const q = match.questions[match.qIndex];
+      if (!q) {
+        finishMatch();
+        return;
+      }
+
+      match.lockedOutIds = [];
+      match.paused = false;
+      const pauseBtn = document.getElementById(`btn-pause`);
+      if (pauseBtn) pauseBtn.textContent = `Pausar`;
+
+      const isBonus = ((match.qIndex + 1) % 5 === 0) || (match.qIndex === match.questions.length - 1);
+      const bonusTag = document.getElementById(`q-bonus-tag`);
+      if (bonusTag) bonusTag.classList.toggle(`hidden`, !isBonus);
+
+      const progText = document.getElementById(`arena-progress-text`);
+      if (progText) progText.textContent = `Reto ${match.qIndex + 1} / ${match.questions.length}`;
+
+      const progFill = document.getElementById(`arena-progress-fill`);
+      if (progFill) {
+        const pct = Math.round(((match.qIndex + 1) / match.questions.length) * 100);
+        progFill.style.width = `${pct}%`;
+      }
+
+      const catTag = document.getElementById(`q-category-tag`);
+      if (catTag) catTag.textContent = q.category;
+
+      const qText = document.getElementById(`question-text`);
+      if (qText) qText.textContent = q.prompt;
+
+      const expBox = document.getElementById(`explanation-box`);
+      if (expBox) expBox.classList.add(`hidden`);
+
+      if (config.gameMode === `turn`) {
+        match.phase = `answering`;
+        match.activePlayerIdx = match.turnOwnerIdx;
+        match.timerVal = 20;
+        const activeP = match.players[match.activePlayerIdx];
+        setBanner(
+          activeP.cls,
+          `Turno de ${activeP.name}: elige la opción correcta`,
+          `Si falla, se abre rebote`
+        );
+      } else {
+        match.phase = `waiting_buzz`;
+        match.activePlayerIdx = null;
+        match.timerVal = 18;
+        setBanner(
+          ``,
+          `¡Pulsa tu timbre (Q, P, Z o M) en cuanto sepas la respuesta!`,
+          isBonus ? `Ronda Doble x2` : `Lectura abierta`
+        );
+      }
+
+      renderArenaPlayers();
+      renderQuestionOptions();
+      startMatchTimer();
+    }
+
+    function setBanner(cls, text, sub) {
+      const banner = document.getElementById(`arena-status-banner`);
+      const textEl = document.getElementById(`status-banner-text`);
+      const subEl = document.getElementById(`status-banner-sub`);
+      if (banner) banner.className = `status-banner ${cls || ``}`.trim();
+      if (textEl) textEl.textContent = text;
+      if (subEl) subEl.textContent = sub || ``;
+    }
+
+    function renderArenaPlayers() {
+      const container = document.getElementById(`players-arena`);
+      if (!container) return;
+      container.innerHTML = ``;
+
+      match.players.forEach((p, idx) => {
+        const isLocked = match.lockedOutIds.includes(idx);
+        const isActive = match.activePlayerIdx === idx && match.phase === `answering`;
+
+        const pod = document.createElement(`div`);
+        pod.className = `player-pod ${p.cls}${isActive ? ` active-turn` : ``}${isLocked ? ` locked-out` : ``}`;
+
+        const head = document.createElement(`div`);
+        head.className = `pod-header`;
+
+        const nameEl = document.createElement(`span`);
+        nameEl.className = `pod-name`;
+        nameEl.textContent = p.name;
+
+        const keyEl = document.createElement(`span`);
+        keyEl.className = `key-cap`;
+        keyEl.textContent = p.keyLabel;
+
+        head.appendChild(nameEl);
+        head.appendChild(keyEl);
+
+        const scoreRow = document.createElement(`div`);
+        scoreRow.className = `pod-score-row`;
+
+        const scoreEl = document.createElement(`span`);
+        scoreEl.className = `pod-score`;
+        scoreEl.textContent = `${p.score} pts`;
+
+        const streakEl = document.createElement(`span`);
+        streakEl.className = `pod-streak`;
+        streakEl.textContent = p.streak >= 2 ? `Racha x${p.streak}` : `${p.correctCount} aciertos`;
+
+        scoreRow.appendChild(scoreEl);
+        scoreRow.appendChild(streakEl);
+
+        const btn = document.createElement(`button`);
+        btn.type = `button`;
+        btn.className = `buzzer-btn`;
+        btn.setAttribute(`onclick`, `buzzPlayer(${idx})`);
+
+        if (match.phase === `revealed`) {
+          btn.disabled = true;
+          btn.textContent = `Ronda cerrada`;
+        } else if (isLocked) {
+          btn.disabled = true;
+          btn.textContent = `Bloqueado`;
+        } else if (isActive) {
+          btn.disabled = true;
+          btn.textContent = `¡Respondiendo!`;
+        } else if (match.phase === `answering`) {
+          btn.disabled = true;
+          btn.textContent = `Espera…`;
+        } else {
+          btn.disabled = false;
+          btn.textContent = `¡TIMBRE! [${p.keyLabel}]`;
+        }
+
+        pod.appendChild(head);
+        pod.appendChild(scoreRow);
+        pod.appendChild(btn);
+        container.appendChild(pod);
+      });
+    }
+
+    function renderQuestionOptions(selectedIdx, wasCorrect) {
+      const container = document.getElementById(`options-grid`);
+      if (!container) return;
+      const q = match.questions[match.qIndex];
+      if (!q) return;
+
+      container.innerHTML = ``;
+      const letters = [`A`, `B`, `C`, `D`];
+      const canAnswer = match.phase === `answering`;
+
+      q.options.forEach((optText, idx) => {
+        const btn = document.createElement(`button`);
+        btn.type = `button`;
+        btn.className = `option-btn${canAnswer ? ` ready` : ``}`;
+        btn.setAttribute(`onclick`, `submitAnswer(${idx})`);
+
+        if (match.phase === `revealed`) {
+          btn.disabled = true;
+          if (idx === q.correct) btn.classList.add(`correct`);
+          else if (idx === selectedIdx && !wasCorrect) btn.classList.add(`wrong`);
+        }
+
+        const badge = document.createElement(`span`);
+        badge.className = `option-letter`;
+        badge.textContent = letters[idx];
+
+        const label = document.createElement(`span`);
+        label.textContent = optText;
+
+        btn.appendChild(badge);
+        btn.appendChild(label);
+        container.appendChild(btn);
+      });
+    }
+
+    function buzzPlayer(idx) {
+      if (!match.active || match.paused) return;
+      if (match.phase !== `waiting_buzz`) return;
+      if (match.lockedOutIds.includes(idx)) return;
+
+      playBuzzerSound(idx);
+      match.phase = `answering`;
+      match.activePlayerIdx = idx;
+      match.timerVal = 8;
+      updateTimerDisplay();
+
+      const p = match.players[idx];
+      setBanner(p.cls, `¡${p.name} timbró primero! Elige A, B, C o D`, `Teclas 1–4 o toque`);
+      renderArenaPlayers();
+      renderQuestionOptions();
+    }
+
+    function submitAnswer(optIdx) {
+      if (!match.active || match.paused) return;
+      if (match.phase === `waiting_buzz`) {
+        setBanner(``, `¡Pulsa primero tu timbre (Q, P, Z o M) antes de elegir opción!`, `Modo Arcade`);
+        playTone(300, 0.08, `sine`, 0.08);
+        return;
+      }
+      if (match.phase !== `answering` || match.activePlayerIdx === null) return;
+
+      const q = match.questions[match.qIndex];
+      const player = match.players[match.activePlayerIdx];
+      player.attempts += 1;
+
+      const isBonus = ((match.qIndex + 1) % 5 === 0) || (match.qIndex === match.questions.length - 1);
+      const mult = isBonus ? 2 : 1;
+
+      if (!match.categoryStats[q.category]) {
+        match.categoryStats[q.category] = { total: 0, correct: 0 };
+      }
+
+      if (optIdx === q.correct) {
+        clearMatchTimer();
+        playCorrectSound();
+        player.streak += 1;
+        if (player.streak > player.bestStreak) player.bestStreak = player.streak;
+        player.correctCount += 1;
+
+        const speedBonus = Math.max(0, Math.min(50, match.timerVal * 5));
+        const streakBonus = player.streak > 1 ? (player.streak - 1) * 25 : 0;
+        const earned = (100 + speedBonus + streakBonus) * mult;
+        player.score += earned;
+
+        match.categoryStats[q.category].total += 1;
+        match.categoryStats[q.category].correct += 1;
+
+        match.phase = `revealed`;
+        setBanner(`success`, `¡Correcto, ${player.name}! +${earned} puntos`, isBonus ? `Incluye x2` : `Racha x${player.streak}`);
+        renderArenaPlayers();
+        renderQuestionOptions(optIdx, true);
+        showExplanation(q);
+      } else {
+        playWrongSound();
+        player.streak = 0;
+        player.score = Math.max(0, player.score - 25);
+        match.lockedOutIds.push(player.id);
+
+        const remainingPlayers = match.players.filter(pl => !match.lockedOutIds.includes(pl.id));
+        if (remainingPlayers.length > 0) {
+          match.phase = `waiting_buzz`;
+          match.activePlayerIdx = null;
+          match.timerVal = 10;
+          updateTimerDisplay();
+          setBanner(
+            `error`,
+            `¡Fallo de ${player.name} (-25 pts)! Rebote abierto: ¡pulsen su timbre!`,
+            `${remainingPlayers.length} rivales disponibles`
+          );
+          renderArenaPlayers();
+          renderQuestionOptions();
+        } else {
+          clearMatchTimer();
+          match.categoryStats[q.category].total += 1;
+          recordMissedQuestion(q.id);
+          match.phase = `revealed`;
+          setBanner(`error`, `Nadie acertó este reto. Revisa la explicación doctrinal`, `0 pts asignados`);
+          renderArenaPlayers();
+          renderQuestionOptions(optIdx, false);
+          showExplanation(q);
+        }
+      }
+    }
+
+    function recordMissedQuestion(qId) {
+      if (!match.matchMissedIds.includes(qId)) {
+        match.matchMissedIds.push(qId);
+      }
+      if (!persistedStats.missedQuestionIds.includes(qId)) {
+        persistedStats.missedQuestionIds.push(qId);
+      }
+    }
+
+    function showExplanation(q) {
+      const box = document.getElementById(`explanation-box`);
+      const src = document.getElementById(`explanation-source`);
+      const txt = document.getElementById(`explanation-text`);
+      const nextLbl = document.getElementById(`next-q-label`);
+
+      if (src) src.textContent = q.source;
+      if (txt) txt.textContent = q.explanation;
+      if (nextLbl) {
+        nextLbl.textContent = (match.qIndex + 1 >= match.questions.length)
+          ? `Ver Podio Final`
+          : `Siguiente Reto`;
+      }
+      if (box) box.classList.remove(`hidden`);
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function nextQuestion() {
+      if (!match.active) return;
+      match.qIndex += 1;
+      match.turnOwnerIdx = (match.turnOwnerIdx + 1) % match.players.length;
+      if (match.qIndex >= match.questions.length) {
+        finishMatch();
+      } else {
+        loadCurrentQuestion();
+      }
+    }
+
+    /* ==================== TIMER & PAUSE ==================== */
+    function startMatchTimer() {
+      clearMatchTimer();
+      updateTimerDisplay();
+      match.timerHandle = setInterval(() => {
+        if (match.paused || match.phase === `revealed`) return;
+        match.timerVal -= 1;
+        updateTimerDisplay();
+        if (match.timerVal <= 0) {
+          handleTimeOut();
+        }
+      }, 1000);
+    }
+
+    function clearMatchTimer() {
+      if (match.timerHandle) {
+        clearInterval(match.timerHandle);
+        match.timerHandle = null;
+      }
+    }
+
+    function updateTimerDisplay() {
+      const pill = document.getElementById(`arena-timer-pill`);
+      const val = document.getElementById(`arena-timer-val`);
+      if (val) val.textContent = `${Math.max(0, match.timerVal)}s`;
+      if (pill) pill.classList.toggle(`urgent`, match.timerVal <= 5);
+    }
+
+    function handleTimeOut() {
+      const q = match.questions[match.qIndex];
+      if (!q) return;
+
+      if (match.phase === `answering` && match.activePlayerIdx !== null) {
+        const player = match.players[match.activePlayerIdx];
+        playWrongSound();
+        player.streak = 0;
+        player.score = Math.max(0, player.score - 25);
+        match.lockedOutIds.push(player.id);
+        const remaining = match.players.filter(pl => !match.lockedOutIds.includes(pl.id));
+        if (remaining.length > 0) {
+          match.phase = `waiting_buzz`;
+          match.activePlayerIdx = null;
+          match.timerVal = 9;
+          updateTimerDisplay();
+          setBanner(`error`, `¡Se acabó el tiempo de ${player.name}! Rebote abierto`, `Pulsen timbre`);
+          renderArenaPlayers();
+          renderQuestionOptions();
+          return;
+        }
+      }
+
+      clearMatchTimer();
+      playWrongSound();
+      if (!match.categoryStats[q.category]) {
+        match.categoryStats[q.category] = { total: 0, correct: 0 };
+      }
+      match.categoryStats[q.category].total += 1;
+      recordMissedQuestion(q.id);
+      match.phase = `revealed`;
+      setBanner(`error`, `Tiempo agotado. Esta es la respuesta correcta:`, `Sin puntos`);
+      renderArenaPlayers();
+      renderQuestionOptions(-1, false);
+      showExplanation(q);
+    }
+
+    function togglePause() {
+      if (!match.active || match.phase === `revealed`) return;
+      match.paused = !match.paused;
+      const btn = document.getElementById(`btn-pause`);
+      if (btn) btn.textContent = match.paused ? `Reanudar` : `Pausar`;
+      if (match.paused) {
+        setBanner(``, `Partida en pausa para debate en clase`, `Pulsa Reanudar para seguir`);
+      } else {
+        if (match.phase === `answering` && match.activePlayerIdx !== null) {
+          const p = match.players[match.activePlayerIdx];
+          setBanner(p.cls, `¡Turno de ${p.name}! Elige A, B, C o D`, ``);
+        } else {
+          setBanner(``, `¡Partida reanudada! Pulsen su timbre (Q, P, Z o M)`, ``);
+        }
+      }
+    }
+
+    function handleExitMatch(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `¿Confirmar salida?`;
+        setTimeout(() => {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `Salir`;
+          }
+        }, 3000);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `Salir`;
+      returnToLobby();
+    }
+
+    function returnToLobby() {
+      clearMatchTimer();
+      match.active = false;
+      renderLobbyStats();
+      showView(`view-lobby`);
+    }
+
+    /* ==================== PODIUM & RESULTS ==================== */
+    function finishMatch() {
+      clearMatchTimer();
+      match.active = false;
+      playVictorySound();
+
+      const ranked = match.players.slice().sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.correctCount - a.correctCount;
+      });
+
+      const topScore = ranked[0] ? ranked[0].score : 0;
+      const winners = ranked.filter(p => p.score === topScore);
+
+      persistedStats.matchesPlayed += 1;
+      persistedStats.lastWinner = winners.map(w => w.name).join(` & `);
+      if (topScore >= persistedStats.highScore) {
+        persistedStats.highScore = topScore;
+        persistedStats.highScorePlayer = winners[0].name;
+      }
+      savePersistedState();
+
+      const titleEl = document.getElementById(`podium-title`);
+      const subEl = document.getElementById(`podium-subtitle`);
+      if (titleEl) {
+        if (winners.length > 1) {
+          titleEl.innerHTML = `¡Empate en la <em>cima</em>!`;
+        } else {
+          titleEl.innerHTML = `¡Victoria para <em>${escapeHtml(winners[0].name)}</em>!`;
+        }
+      }
+      if (subEl) {
+        subEl.textContent = `Reto completado de ${match.questions.length} preguntas · Puntuación máxima: ${topScore} pts.`;
+      }
+
+      const podiumGrid = document.getElementById(`podium-grid`);
+      if (podiumGrid) {
+        podiumGrid.innerHTML = ``;
+        const rankLabels = [`1.º Lugar · Campeón`, `2.º Lugar`, `3.º Lugar`, `4.º Lugar`];
+        ranked.forEach((p, i) => {
+          const card = document.createElement(`div`);
+          card.className = `podium-card${i === 0 ? ` rank-1` : ``}`;
+          const acc = p.attempts > 0 ? Math.round((p.correctCount / p.attempts) * 100) : 0;
+          card.innerHTML = `
+            <span class="player-dot" style="align-self: flex-start; background-color: var(${p.cls === `p1` ? `--data-1` : p.cls === `p2` ? `--data-3` : p.cls === `p3` ? `--data-2` : `--data-4`}); color: var(${p.cls === `p2` || p.cls === `p4` ? `--on-surface` : `--on-primary`});">
+              ${rankLabels[i] || `${i + 1}.º Lugar`}
+            </span>
+            <h3 class="sub-heading">${escapeHtml(p.name)}</h3>
+            <span class="metric-value">${p.score} pts</span>
+            <span class="subtitle">${p.correctCount} aciertos (${acc}% precisión) · Mejor racha: ${p.bestStreak}</span>
+          `;
+          podiumGrid.appendChild(card);
+        });
+      }
+
+      renderLollipopChart();
+      renderPodiumMissed();
+      showView(`view-podium`);
+    }
+
+    function renderLollipopChart() {
+      const container = document.getElementById(`podium-lollipop`);
+      if (!container) return;
+      container.innerHTML = ``;
+
+      const entries = Object.keys(match.categoryStats);
+      if (entries.length === 0) {
+        container.innerHTML = `<p class="subtitle">Sin datos suficientes en esta ronda.</p>`;
+        return;
+      }
+
+      entries.forEach(cat => {
+        const st = match.categoryStats[cat];
+        const pct = st.total > 0 ? Math.round((st.correct / st.total) * 100) : 0;
+        const row = document.createElement(`div`);
+        row.className = `lollipop-row`;
+        row.innerHTML = `
+          <span class="lollipop-label">${escapeHtml(cat)}</span>
+          <div class="lollipop-track" aria-hidden="true">
+            <div class="lollipop-bar" style="width: ${pct}%;"></div>
+          </div>
+          <span class="lollipop-pct">${pct}%</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderPodiumMissed() {
+      const container = document.getElementById(`podium-missed-list`);
+      if (!container) return;
+      container.innerHTML = ``;
+
+      if (match.matchMissedIds.length === 0) {
+        container.innerHTML = `<p class="subtitle">¡Impecable! El grupo dominó todas las preguntas sin dejar ninguna sin responder.</p>`;
+        return;
+      }
+
+      match.matchMissedIds.forEach(id => {
+        const q = QUESTIONS.find(item => item.id === id);
+        if (!q) return;
+        const item = document.createElement(`div`);
+        item.className = `study-answer`;
+        item.innerHTML = `
+          <span class="kicker">${escapeHtml(q.category)}</span>
+          <strong>${escapeHtml(q.prompt)}</strong>
+          <span class="subtitle"><strong>Respuesta:</strong> ${escapeHtml(q.options[q.correct])}</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function exportMatchCsv() {
+      const rows = [`Posicion,Jugador,Puntuacion,Aciertos,Intentos,MejorRacha`];
+      const ranked = match.players.slice().sort((a, b) => b.score - a.score);
+      ranked.forEach((p, idx) => {
+        const safeName = `"${String(p.name).replace(/"/g, `""`)}"`;
+        rows.push(`${idx + 1},${safeName},${p.score},${p.correctCount},${p.attempts},${p.bestStreak}`);
+      });
+      const csvContent = rows.join(`\n`);
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === `function`) {
+        window.notebookAppApi.triggerFileDownload({
+          content: csvContent,
+          contentType: `text/csv`,
+          encoding: `UTF-8`,
+          filename: `duelo_doctrinas_economicas.csv`
+        });
+      }
+    }
+
+    /* ==================== STUDY BANK VIEW ==================== */
+    function toggleStudyView() {
+      const studyEl = document.getElementById(`view-study`);
+      if (!studyEl) return;
+      const isHidden = studyEl.classList.contains(`hidden`);
+      if (isHidden) {
+        clearMatchTimer();
+        match.paused = true;
+        renderStudyList();
+        showView(`view-study`);
+        const navLbl = document.getElementById(`study-nav-label`);
+        if (navLbl) navLbl.textContent = match.active ? `Volver al Duelo` : `Volver al Lobby`;
+      } else {
+        const navLbl = document.getElementById(`study-nav-label`);
+        if (navLbl) navLbl.textContent = `Banco de Estudio (30)`;
+        if (match.active) {
+          match.paused = false;
+          showView(`view-arena`);
+          startMatchTimer();
+        } else {
+          showView(`view-lobby`);
+        }
+      }
+    }
+
+    function renderStudyList() {
+      const filterEl = document.getElementById(`study-filter`);
+      const listEl = document.getElementById(`study-list`);
+      if (!filterEl || !listEl) return;
+
+      const filter = filterEl.value;
+      let items = QUESTIONS.slice();
+      if (filter === `missed`) {
+        items = items.filter(q => persistedStats.missedQuestionIds.includes(q.id));
+      } else if (filter !== `all`) {
+        items = items.filter(q => q.category === filter);
+      }
+
+      listEl.innerHTML = ``;
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div class="card">
+            <h3 class="sub-heading">Sin preguntas pendientes aquí</h3>
+            <p class="subtitle">No tienes preguntas marcadas como falladas todavía. Juega una ronda o selecciona "Todas (30)".</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(q => {
+        const card = document.createElement(`article`);
+        card.className = `study-card`;
+        card.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+            <div style="display: flex; justify-content: space-between; gap: var(--space-sm); align-items: center;">
+              <span class="tag">${escapeHtml(q.category)}</span>
+              <span class="kicker">#${q.id}</span>
+            </div>
+            <h3 class="sub-heading">${escapeHtml(q.prompt)}</h3>
+          </div>
+          <div id="study-ans-${q.id}" class="study-answer hidden">
+            <strong>Respuesta correcta:</strong>
+            <span>${escapeHtml(q.options[q.correct])}</span>
+            <p class="subtitle" style="margin-top: var(--space-xs);">${escapeHtml(q.explanation)}</p>
+            <span class="kicker">${escapeHtml(q.source)}</span>
+          </div>
+          <div>
+            <button type="button" class="btn btn-quiet" onclick="toggleStudyAnswer(${q.id}, this)">Mostrar respuesta</button>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function toggleStudyAnswer(qId, btn) {
+      const ans = document.getElementById(`study-ans-${qId}`);
+      if (!ans || !btn) return;
+      const isHidden = ans.classList.contains(`hidden`);
+      ans.classList.toggle(`hidden`, !isHidden);
+      btn.textContent = isHidden ? `Ocultar respuesta` : `Mostrar respuesta`;
+    }
+
+    /* ==================== KEYBOARD SHORTCUTS ==================== */
+    document.addEventListener(`keydown`, function (ev) {
+      if (!match.active) return;
+      const arena = document.getElementById(`view-arena`);
+      if (!arena || arena.classList.contains(`hidden`)) return;
+      if (ev.target && (ev.target.tagName === `INPUT` || ev.target.tagName === `SELECT`)) return;
+
+      const k = ev.key.toLowerCase();
+      if (match.phase === `waiting_buzz`) {
+        const foundIdx = match.players.findIndex(p => p.key === k);
+        if (foundIdx !== -1) {
+          ev.preventDefault();
+          buzzPlayer(foundIdx);
+        }
+      } else if (match.phase === `answering`) {
+        const mapOpt = { '1': 0, '2': 1, '3': 2, '4': 3 };
+        if (k in mapOpt) {
+          ev.preventDefault();
+          submitAnswer(mapOpt[k]);
+        }
+      } else if (match.phase === `revealed`) {
+        if (k === `enter` || k === ` `) {
+          ev.preventDefault();
+          nextQuestion();
+        }
+      }
+    });
+
+    /* ==================== INITIALIZATION ==================== */
+    async function initApp() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved) {
+            if (saved.config) {
+              config.playerCount = saved.config.playerCount || 4;
+              config.gameMode = saved.config.gameMode || `buzzer`;
+              config.questionCount = saved.config.questionCount || 30;
+              config.topicFilter = saved.config.topicFilter || `all`;
+              if (Array.isArray(saved.config.names) && saved.config.names.length === 4) {
+                config.names = saved.config.names;
+              }
+              if (typeof saved.config.soundEnabled === `boolean`) {
+                config.soundEnabled = saved.config.soundEnabled;
+              }
+            }
+            if (saved.stats) {
+              persistedStats = {
+                matchesPlayed: saved.stats.matchesPlayed || 0,
+                highScore: saved.stats.highScore || 0,
+                highScorePlayer: saved.stats.highScorePlayer || ``,
+                lastWinner: saved.stats.lastWinner || ``,
+                missedQuestionIds: Array.isArray(saved.stats.missedQuestionIds) ? saved.stats.missedQuestionIds : []
+              };
+            }
+          }
+        }
+      } catch (e) {
+        /* Proceed with defaults */
+      }
+
+      setPlayerCount(config.playerCount);
+      setGameMode(config.gameMode);
+      const selLen = document.getElementById(`select-length`);
+      if (selLen) selLen.value = String(config.questionCount);
+      const selTopic = document.getElementById(`select-topic`);
+      if (selTopic) selTopic.value = config.topicFilter;
+
+      updateSoundButton();
+      renderLobbyStats();
+      showView(`view-lobby`);
+
+      if (window.lucide) window.lucide.createIcons();
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
